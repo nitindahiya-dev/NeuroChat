@@ -1,0 +1,29 @@
+chat-app/
+├── backend/           # Rust backend
+│   ├── Cargo.toml
+│   ├── src/
+│   │   ├── main.rs
+│   │   └── actors.rs
+├── frontend/          # Next.js frontend
+│   ├── package.json
+│   ├── pages/
+│   │   ├── index.tsx
+│   │   ├── chat.tsx
+│   │   ├── _app.tsx
+│   ├── components/
+│   │   └── Chat.tsx
+│   └── styles/
+│       └── globals.css
+├── docker-compose.yml # Docker configuration
+└── .github/
+    └── workflows/
+        └── ci-cd.yml     # CI/CD pipeline
+
+
+
+Monorepo: Houses Next.js frontend and Rust backend.
+Backend: Built with Actix Web, supporting WebSockets and APIs, using PostgreSQL.
+Frontend: Next.js with Tailwind CSS for a black-themed UI and Framer Motion for animations.
+Docker: Containerizes both services, managed with Docker Compose.
+CI/CD: GitHub Actions automates testing, building, and deployment.
+UI: A modern, creative design with real-time features and a sleek black theme.
