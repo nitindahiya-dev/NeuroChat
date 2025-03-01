@@ -64,7 +64,7 @@ export default function Landing() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <span className="text-cyan-400">&gt;&gt;</span> Immerse in quantum-encrypted communication powered by blockchain neural networks <span className="text-purple-400">◼◼◼</span>
+            <span className="text-cyan-400"></span> Immerse in quantum-encrypted communication powered by blockchain neural networks <span className="text-purple-400">◼◼◼</span>
           </motion.p>
         </motion.div>
 
