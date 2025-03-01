@@ -1,15 +1,20 @@
 chat-app/
-├── backend/           # Rust backend
+├── backend/
 │   ├── Cargo.toml
 │   ├── src/
-│   │   ├── main.rs
-│   │   └── actors.rs
+│   │   ├── main.rs      # Crate root with `mod schema;`
+│   │   ├── db.rs       # Database connection logic
+│   │   ├── auth.rs     # Authentication handlers using `crate::schema::users`
+│   │   ├── schema.rs   # Diesel schema definitions
+│   │   ├── models.rs   # Models
+│   │   └── actors.rs   # WebSocket actors
 ├── frontend/          # Next.js frontend
 │   ├── package.json
 │   ├── pages/
 │   │   ├── index.tsx
 │   │   ├── chat.tsx
 │   │   ├── _app.tsx
+│   │   ├── _document.tsx
 │   ├── components/
 │   │   └── Chat.tsx
 │   └── styles/

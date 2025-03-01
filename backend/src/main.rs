@@ -1,29 +1,36 @@
-use actix_web::{web, App, HttpServer, HttpResponse};
-use actix_web_actors::ws;
-use dotenv::dotenv;
-use std::env;
+mod db;
+mod auth;
+mod schema;
+mod models;
 
-mod actors;
+use actix_cors::Cors;
+use actix_web::{middleware, web, App, HttpServer, http};
+use db::establish_connection;
+use auth::{signup, login, profile};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    dotenv().ok();
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    dotenv::dotenv().ok();
 
-    let server_addr = "0.0.0.0:8080";
+    let pool = establish_connection();
+    println!("✅ Database connection established!");
 
-    println!("Starting server at {}", server_addr);
-    println!("Starting datbase at {}", database_url);
-
-    HttpServer::new(|| {
+    let server = HttpServer::new(move || {
         App::new()
-            .route("/ws", web::get().to(ws_route))
+            .wrap(middleware::Logger::default())
+            .wrap(Cors::default()
+                .allowed_origin("http://localhost:3000") // Allow frontend
+                .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+                .allowed_headers(vec![http::header::CONTENT_TYPE, http::header::AUTHORIZATION])
+                .supports_credentials() // 🔥 Allow cookies/sessions
+            )
+            .app_data(web::Data::new(pool.clone()))
+            .route("/signup", web::post().to(signup))
+            .route("/login", web::post().to(login))
+            .route("/profile", web::get().to(profile))
     })
-    .bind(server_addr)?
-    .run()
-    .await
-}
+    .bind("127.0.0.1:8080")?;
 
-async fn ws_route(req: actix_web::HttpRequest, stream: web::Payload) -> Result<HttpResponse, actix_web::Error> {
-    ws::start(actors::ChatServer::new(), &req, stream)
+    println!("🚀 Server is running at http://127.0.0.1:8080");
+    server.run().await
 }

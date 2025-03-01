@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import * as THREE from 'three';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { useAuth } from '../context/AuthContext';
 
 interface Message {
   room: string;
@@ -11,30 +9,40 @@ interface Message {
   timestamp: number;
 }
 
-function FloatingSphere() {
-  const meshRef = useRef<THREE.Mesh>(null!);
 
-  useFrame(({ clock }) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = clock.getElapsedTime() * 0.2;
-      meshRef.current.rotation.y = clock.getElapsedTime() * 0.3;
-      meshRef.current.position.y = Math.sin(clock.getElapsedTime()) * 0.5;
-    }
-  });
-
+const AnimatedBackgroundSVG = () => {
   return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[1, 32, 32]} />
-      <meshStandardMaterial
-        color="#00ffff"
-        emissive="#00ffff"
-        emissiveIntensity={0.5}
-        metalness={0.8}
-        roughness={0.2}
+    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bgGradient" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#0F172A" />
+          <stop offset="50%" stopColor="#1E293B" />
+          <stop offset="100%" stopColor="#0F172A" />
+        </linearGradient>
+      </defs>
+      <rect width="800" height="600" fill="url(#bgGradient)" />
+      {/* Animated circles */}
+      <motion.circle
+        cx="400" cy="300" r="50"
+        fill="rgba(34,211,238,0.3)"
+        animate={{ r: [40, 60, 40], opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       />
-    </mesh>
+      <motion.circle
+        cx="200" cy="150" r="30"
+        fill="rgba(168,85,247,0.3)"
+        animate={{ r: [20, 40, 20], opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+      />
+      <motion.circle
+        cx="600" cy="450" r="40"
+        fill="rgba(96,165,250,0.3)"
+        animate={{ r: [30, 50, 30], opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      />
+    </svg>
   );
-}
+};
 
 export default function Chat({ room }: { room: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -54,7 +62,7 @@ export default function Chat({ room }: { room: string }) {
     const websocket = new WebSocket(`ws://localhost:8080/ws`);
     websocket.onopen = () => console.log('Connected to WebSocket');
     websocket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
+      const message: Message = JSON.parse(event.data);
       if (message.room === room) {
         setMessages((prev) => [...prev, message]);
       }
@@ -63,25 +71,25 @@ export default function Chat({ room }: { room: string }) {
     return () => websocket.close();
   }, [room]);
 
+  const { user } = useAuth();
+
   const sendMessage = () => {
-    if (ws && input.trim()) {
-      const message = { room, content: input };
+    if (ws && input.trim() && user) {
+      const message = { 
+        room, 
+        content: input,
+        sender: user.username,
+        timestamp: Date.now()
+      };
       ws.send(JSON.stringify(message));
       setInput('');
     }
   };
 
   return (
-    <div className="h-screen w-full flex">
-      {/* 3D Background Canvas */}
-      <div className="fixed inset-0 -z-10 opacity-20">
-        <Canvas camera={{ position: [0, 0, 5] }}>
-          <ambientLight intensity={0.5} />
-          <pointLight position={[10, 10, 10]} />
-          <FloatingSphere />
-          <OrbitControls enableZoom={false} autoRotate={true} />
-        </Canvas>
-      </div>
+    <div className="relative h-[85vh] w-full flex">
+      {/* SVG Background */}
+      <AnimatedBackgroundSVG />
 
       {/* Chat Interface */}
       <div className="flex-1 flex flex-col backdrop-blur-xl bg-gradient-to-br from-gray-900/80 to-cyan-900/20 border border-cyan-500/30 rounded-xl m-4 shadow-2xl shadow-cyan-500/20">
@@ -95,28 +103,37 @@ export default function Chat({ room }: { room: string }) {
 
         {/* Messages Container */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-          {messages.map((msg, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ type: 'spring' }}
-              className="group relative flex gap-3"
-            >
-              <div className="absolute -left-8 top-2 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center">
-                🤖
-              </div>
-              <div className="bg-gray-800/50 p-4 rounded-2xl backdrop-blur-sm border border-cyan-500/20 group-hover:border-cyan-500/40 transition-all">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-cyan-400 font-bold">{msg.sender}</span>
-                  <span className="text-xs text-cyan-500">
-                    {new Date(msg.timestamp).toLocaleTimeString()}
-                  </span>
-                </div>
-                <p className="text-gray-100">{msg.content}</p>
-              </div>
-            </motion.div>
-          ))}
+        {messages.map((msg, idx) => (
+    <motion.div
+      key={idx}
+      initial={{ opacity: 0, x: msg.sender === user?.username ? 50 : -50 }}
+      animate={{ opacity: 1, x: 0 }}
+      className={`group relative flex gap-3 ${msg.sender === user?.username ? 'justify-end' : ''}`}
+    >
+      {msg.sender !== user?.username && (
+        <div className="absolute -left-8 top-2 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center">
+          {msg.sender[0]}
+        </div>
+      )}
+      <div className={`bg-gray-800/50 p-4 rounded-2xl backdrop-blur-sm border ${
+        msg.sender === user?.username 
+          ? 'border-blue-500/20 group-hover:border-blue-500/40' 
+          : 'border-cyan-500/20 group-hover:border-cyan-500/40'
+      }`}>
+        <div className="flex items-center gap-2 mb-1">
+          <span className={`font-bold ${
+            msg.sender === user?.username ? 'text-blue-400' : 'text-cyan-400'
+          }`}>
+            {msg.sender}
+          </span>
+          <span className="text-xs text-cyan-500">
+            {new Date(msg.timestamp).toLocaleTimeString()}
+          </span>
+        </div>
+        <p className="text-gray-100">{msg.content}</p>
+      </div>
+    </motion.div>
+  ))}
           <div ref={messagesEndRef} />
         </div>
 
@@ -136,7 +153,7 @@ export default function Chat({ room }: { room: string }) {
               onClick={sendMessage}
               className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl font-bold text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all"
             >
-              Send ⚡[]
+              Send ⚡
             </motion.button>
           </div>
         </div>
