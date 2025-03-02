@@ -60,11 +60,14 @@ export default function Navbar() {
         </Link>
 
         <div className="flex gap-6 items-center">
-          <Link href="/chat">
-            <button className="px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg border border-cyan-500/30 text-cyan-400 transition-all">
-              Chats 💬
-            </button>
-          </Link>
+          {/* Show Chats only if the user is logged in */}
+          {user && (
+            <Link href="/chat">
+              <button className="px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg border border-cyan-500/30 text-cyan-400 transition-all">
+                Chats 💬
+              </button>
+            </Link>
+          )}
 
           {user ? (
             <div className="relative group">
