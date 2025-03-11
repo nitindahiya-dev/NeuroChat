@@ -1,62 +1,98 @@
-// pages/index.tsx
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useAuth } from '../context/AuthContext';
 import Chat from '../components/Chat';
+import CreateCommunityModal from '../components/CreateCommunityModal';
 
+interface Group {
+  id: string;
+  name: string;
+  members: string[];
+}
 
-export default function Home() {  // Rename from Chat to Home
-  const [room, setRoom] = useState('general');
-  const rooms = ['cyberpunk', 'neon-city', 'hackers', 'developers', 'Need Help'];
+export default function ChatPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [group, setGroup] = useState('general');
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Dummy initial groups
+  const initialGroups: Group[] = [
+    { id: '1', name: 'general', members: ['1', '2', '3'] },
+    { id: '2', name: 'developers', members: ['1', '4'] },
+    { id: '3', name: 'designers', members: ['2', '5'] },
+  ];
+
+  useEffect(() => {
+    // Simulated API call
+    setGroups(initialGroups);
+  }, []);
+
+  const createCommunity = async (form: { name: string; members: string[] }) => {
+    // Simulated API response
+    const newCommunity: Group = {
+      id: String(groups.length + 1),
+      name: form.name,
+      members: [...form.members, user?.id || '']
+    };
+    
+    setGroups(prev => [...prev, newCommunity]);
+    setGroup(newCommunity.name);
+  };
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-cyan-900/10">
-    
-
-      {/* Main Content */}
+    <div className="min-h-screen bg-gray-900">
       <div className="pt-20 pb-8 px-8 flex gap-8">
-        {/* Holographic Room Selector */}
-        <motion.div 
-          className="w-64 backdrop-blur-xl bg-gray-900/50 border border-cyan-500/30 rounded-xl shadow-2xl shadow-cyan-500/10 p-4"
-          initial={{ x: -50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-        >
-          <h2 className="text-lg font-bold text-cyan-400 mb-4">Channels</h2>
+        {/* Sidebar */}
+        <div className="w-64 bg-gray-800 p-4 rounded-lg">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold text-cyan-400">Communities</h2>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="p-2 hover:bg-gray-700/50 rounded-lg text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </button>
+          </div>
+          
           <ul className="space-y-2">
-            {rooms.map((roomName) => (
-              <motion.li
-                key={roomName}
-                whileHover={{ x: 10 }}
+            {groups.map((g) => (
+              <li
+                key={g.id}
                 className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                  room === roomName 
-                    ? 'bg-cyan-500/20 border border-cyan-500/30'
-                    : 'hover:bg-cyan-500/10'
+                  group === g.name ? 'bg-cyan-500/20' : 'hover:bg-cyan-500/10'
                 }`}
-                onClick={() => setRoom(roomName)}
+                onClick={() => setGroup(g.name)}
               >
-                <span className="text-gray-200"># </span>
-                <span className="text-cyan-400 capitalize">{roomName}</span>
-              </motion.li>
+                <div className="flex items-center">
+                  <span className="text-cyan-400"># {g.name}</span>
+                  <span className="ml-auto text-xs text-cyan-500/80">
+                    {g.members.length} members
+                  </span>
+                </div>
+              </li>
             ))}
           </ul>
-        </motion.div>
+        </div>
 
-        {/* Chat Container */}
-        <Chat room={room} />
-      </div>
+        {/* Chat */}
+        <Chat room={group} />
 
-      {/* Floating Particles */}
-      <div className="fixed inset-0 -z-10">
-        {[...Array(100)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-0.5 h-0.5 bg-cyan-400 rounded-full"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animation: `float ${5 + Math.random() * 10}s infinite`
-            }}
+        {showCreateModal && (
+          <CreateCommunityModal
+            onClose={() => setShowCreateModal(false)}
+            onCreate={createCommunity}
           />
-        ))}
+        )}
       </div>
     </div>
   );
