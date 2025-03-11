@@ -21,7 +21,7 @@ export default function Navbar() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // ✅ Ensure cookies are sent
+        credentials: 'include',
         body: JSON.stringify({
           email,
           password,

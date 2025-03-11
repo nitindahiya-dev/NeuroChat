@@ -2,13 +2,17 @@ chat-app/
 ├── backend/
 │   ├── Cargo.toml
 │   ├── src/
-│   │   ├── main.rs      # Crate root with `mod schema;`
-│   │   ├── db.rs       # Database connection logic
-│   │   ├── auth.rs     # Authentication handlers using `crate::schema::users`
-│   │   ├── schema.rs   # Diesel schema definitions
-│   │   ├── models.rs   # Models
-│   │   └── actors.rs   # WebSocket actors
-├── frontend/          # Next.js frontend
+│   │   ├── main.rs         # Main entry point
+│   │   ├── groups.rs       # Groups entry point
+│   │   ├── db.rs           # Database connection
+│   │   ├── auth.rs         # Authentication routes
+│   │   ├── schema.rs       # Diesel ORM Schema
+│   │   ├── models.rs       # Models (Users, Groups)
+│   │   ├── actors.rs       # WebSocket Actors
+│   │   ├── ws.rs           # WebSocket Handlers
+│   ├── migrations/         # Diesel migrations
+
+├── frontend/   
 │   ├── package.json
 │   ├── pages/
 │   │   ├── index.tsx
