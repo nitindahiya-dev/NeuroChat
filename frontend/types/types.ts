@@ -13,3 +13,12 @@ export interface Community {
     name: string;
     description?: string;
   }
+
+  export interface Group {
+    id: string;
+    name: string;
+    members: string[];
+    channels?: Channel[];
+    owner?: string;
+    description?: string;
+  }

@@ -1,53 +1,24 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { User, dummyUsers } from '../data/dummyUsers';
 
-
-interface User {
-  id: string;
-  username: string;
-  avatar: string;
-}
-
+// Updated CommunityForm interface
 interface CommunityForm {
   name: string;
-  members: string[];
+  description: string;
 }
-
-const dummyUsers: User[] = [
-  { id: '1', username: 'Neo', avatar: '👨💻' },
-  { id: '2', username: 'Trinity', avatar: '🕶️' },
-  { id: '3', username: 'Morpheus', avatar: '🧔' },
-  { id: '4', username: 'Oracle', avatar: '🔮' },
-  { id: '5', username: 'Cypher', avatar: '🕵️' },
-];
 
 export default function CreateCommunityModal({ onClose, onCreate }: {
   onClose: () => void;
   onCreate: (community: CommunityForm) => void;
 }) {
   const { user } = useAuth();
-  const [form, setForm] = useState<CommunityForm>({ name: '', members: [] });
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  const filteredUsers = dummyUsers.filter(u =>
-    u.username.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    u.id !== user?.id
-  );
-
-  const toggleMember = (userId: string) => {
-    setForm(prev => ({
-      ...prev,
-      members: prev.members.includes(userId)
-        ? prev.members.filter(id => id !== userId)
-        : [...prev.members, userId]
-    }));
-  };
+  const [form, setForm] = useState<CommunityForm>({ name: '', description: '' });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.name && form.members.length > 0) {
+    // Check that both name and description are provided
+    if (form.name && form.description) {
       onCreate(form);
       onClose();
     }
@@ -65,6 +36,7 @@ export default function CreateCommunityModal({ onClose, onCreate }: {
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Community Name Input */}
           <div>
             <label className="block text-cyan-300 mb-2">Community Name</label>
             <input
@@ -76,36 +48,20 @@ export default function CreateCommunityModal({ onClose, onCreate }: {
             />
           </div>
 
+          {/* Description Input */}
           <div>
-            <label className="block text-cyan-300 mb-2">Add Members</label>
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-700/50 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-2"
-              placeholder="Search users..."
+            <label className="block text-cyan-300 mb-2">Description</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="w-full bg-gray-700/50 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              placeholder="Enter community description"
+              rows={3}
+              required
             />
-            
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {filteredUsers.map(user => (
-                <div
-                  key={user.id}
-                  onClick={() => toggleMember(user.id)}
-                  className={`flex items-center p-2 rounded-lg cursor-pointer ${
-                    form.members.includes(user.id)
-                      ? 'bg-cyan-500/20'
-                      : 'hover:bg-gray-700/50'
-                  }`}
-                >
-                  <span className="mr-3">{user.avatar}</span>
-                  <span className="text-white">{user.username}</span>
-                  {form.members.includes(user.id) && (
-                    <span className="ml-auto text-cyan-400">✓</span>
-                  )}
-                </div>
-              ))}
-            </div>
           </div>
 
+          {/* Form Buttons */}
           <div className="flex justify-end gap-3">
             <button
               type="button"
