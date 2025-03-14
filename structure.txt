@@ -8,7 +8,6 @@ chat-app/
 │   │   ├── auth.rs         # Authentication routes
 │   │   ├── schema.rs       # Diesel ORM Schema
 │   │   ├── models.rs       # Models (Users, Groups)
-│   │   ├── actors.rs       # WebSocket Actors
 │   │   ├── ws.rs           # WebSocket Handlers
 │   ├── migrations/         # Diesel migrations
 

@@ -1,7 +1,7 @@
 import { useAuth } from '../context/AuthContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { FaRocket, FaShieldAlt, FaBrain, FaSatelliteDish } from 'react-icons/fa';
+import { FaRocket, FaShieldAlt, FaSatelliteDish } from 'react-icons/fa';
 
 const ProfileBackground = () => (
   <svg className="absolute inset-0" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
